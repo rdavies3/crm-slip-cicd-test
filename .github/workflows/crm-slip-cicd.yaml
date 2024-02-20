@@ -22,23 +22,22 @@ jobs:
   build: 
     runs-on: ubuntu-latest
     steps:
-      # Clear CICD project space
-      - name: Clear CICD path
+
+      - name: Delete project build folder
         run: |
-          # DELETE project build folder
-          curl --location --request DELETE '$URL/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
           curl --location --request DELETE '$URL/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' 
         # Continue even if the CURL command fails
         continue-on-error: true
+
       - name: Create project build folder
         run: |
           # Execute the CURL API DELETE
           curl --location --request POST '$URL/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
-            --d '{
+            --data-raw '{
                 "permissions": [
                     {
                         "perms": [
@@ -52,7 +51,8 @@ jobs:
                     }
                 ]
             }'
-      - name: Checkout Project from Github
+
+      - name: Checkout Project from Github to project build folder
         run: |
           # DELETE project build folder
           curl --location --request DELETE '$URL/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
