@@ -25,7 +25,7 @@ jobs:
 
       - name: Delete project build folder
         run: |
-          curl --location --request DELETE '$URL/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          curl --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' 
         # Continue even if the CURL command fails
@@ -34,7 +34,7 @@ jobs:
       - name: Create project build folder
         run: |
           # Execute the CURL API DELETE
-          curl --location --request POST '$URL/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
@@ -55,7 +55,7 @@ jobs:
       - name: Checkout Project from Github to project build folder
         run: |
           # DELETE project build folder
-          curl --location --request DELETE '$URL/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          curl --location --request DELETE '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             -d '{"repo":"${{ github.repository }}","ref" : "${{ github.head_ref }}"}'
