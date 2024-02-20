@@ -11,9 +11,9 @@ on:
 
 env: 
   URL: https://elastic.snaplogic.com
-  ORG_PROD: asu-prod
-  ORG_NP: asu-np
   APP_NAME: ${{ github.event.repository.name }}
+  MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
+  SHORT_SHA: $(git rev-parse --short=7 "${{ github.sha }}")
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,19 +21,9 @@ env:
 jobs:
   build: 
     runs-on: ubuntu-latest
-    env:
-      SHORT_SHA: $(git rev-parse --short=7 "${{ github.sha }}")
     steps:
-      - name: Set MY_ORG
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "MY_ORG=${{ secrets.ORG_PROD }}" >> $GITHUB_ENV
-          else
-            echo "MY_ORG=${{ secrets.ORG_NP }}" >> $GITHUB_ENV
-          fi
-
       - name: Print MY_ORG
-        run: echo "MY_ORG is $MY_ORG"
+        run: echo "MY_ORG is ${{ env.MY_ORG }}""
       
       - name: Print SHORT_SHA
-        run: echo "SHORT_SHA is $SHORT_SHA"
+        run: echo "SHORT_SHA ${{ env.SHORT_SHA }}"
