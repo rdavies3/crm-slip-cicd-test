@@ -13,6 +13,7 @@ env:
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
+  AUTH: 
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,7 +29,7 @@ jobs:
           curl --location --request DELETE '$URL/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
           curl --location --request DELETE '$URL/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }' 
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' 
         # Continue even if the CURL command fails
         continue-on-error: true
       - name: Create project build folder
@@ -56,5 +57,5 @@ jobs:
           # DELETE project build folder
           curl --location --request DELETE '$URL/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             -d '{"repo":"${{ github.repository }}","ref" : "${{ github.head_ref }}"}'
