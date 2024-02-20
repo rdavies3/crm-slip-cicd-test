@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print MY_ORG
-        run: echo "MY_ORG is ${{ env.MY_ORG }}""
+        run: echo "MY_ORG is ${{ env.MY_ORG }}"
       
       - name: Print SHORT_SHA
         run: echo "SHORT_SHA ${{ env.SHORT_SHA }}"
