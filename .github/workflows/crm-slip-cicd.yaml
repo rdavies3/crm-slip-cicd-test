@@ -22,42 +22,10 @@ jobs:
   build: 
     runs-on: ubuntu-latest
     env:
-      MY_ORG: ${{ github.head_ref == 'main' ? env.ORG_PROD : env.ORG_NP }}
+      MY_ORG: ${{ github.ref == 'refs/heads/main' && secrets.ORG_PROD || secrets.ORG_NP }}
       SHORT_SHA: =$(git rev-parse --short=7 ${{ github.sha }})
     steps:
-      # Clear CICD project space
-      - name: Clear CICD path
-        run: |
-          # DELETE project build folder
-          curl --location --request DELETE '$URL/api/1/rest/public/assetapi/project/$MY_ORG/CICD/$APP_NAME-$SHORT_SHA' \
-            --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }' 
-        # Continue even if the CURL command fails
-        continue-on-error: true
-      - name: Create project build folder
-        run: |
-          # Execute the CURL API DELETE
-          curl --location --request POST '$URL/api/1/rest/public/assetapi/project/$MY_ORG/CICD/$APP_NAME-$SHORT_SHA' \
-            --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
-            --data-raw '{
-                "permissions": [
-                    {
-                        "perms": [
-                            "R",
-                            "W",
-                            "X"
-                        ],
-                        "subject_type": "USER",
-                        "inherit": true,
-                        "subject": "roger.davies@asu.edu"
-                    }
-                ]
-            }'
-      - name: Checkout Project from Github
-        run: |
-          # DELETE project build folder
-          curl --location --request DELETE '$URL/api/1/rest/public/project/checkout/$MY_ORG/CICD/$APP_NAME-$SHORT_SHA' \
-            --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }' \
-            -d '{"repo":"${{ github.repository }}","ref" : "${{ github.head_ref }}"}'
+      - name: Print MY_ORG
+        run: | 
+          echo "MY_ORG is $MY_ORG"
+          echo "SHORT_SHA is $SHORT_SHA"
