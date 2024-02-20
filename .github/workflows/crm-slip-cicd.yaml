@@ -1,28 +1,28 @@
 name: deploy-app
 
+on:
+  push:
+    branches:
+      - dev
+      - qa
+  pull_request:
+    branches:
+      - main
+
 env: 
   URL: https://elastic.snaplogic.com
-  ORG-PROD: asu-prod
-  ORG-NP: asu-np
+  ORG_PROD: asu-prod
+  ORG_NP: asu-np
   APP_NAME: ${{ github.event.repository.name }}
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   
-  on:
-    push:
-      branches:
-        - dev
-        - qa
-    pull_request:
-      branches:
-        - main
-
 jobs:
   build: 
     runs-on: ubuntu-latest
     env:
-      SHORT_SHA: =$(git rev-parse --short=7 ${{ github.sha }})
+      SHORT_SHA: $(git rev-parse --short=7 "${{ github.sha }}")
     steps:
       - name: Set MY_ORG
         run: |
