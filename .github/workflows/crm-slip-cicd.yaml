@@ -1,0 +1,25 @@
+name: deploy-app
+
+env: 
+  URL: https://elastic.snaplogic.com
+  ORG-PROD: asu-prod
+  ORG-NP: asu-np
+  PROJECT_SPACE: CICD
+  APP_NAME: ${{ github.event.repository.name }}
+
+on:
+  push:
+    branches:
+      - dev
+      - qa
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Define your steps here
+      - name: Print PROJECT_PROMOTE
+        run: echo "app name is $APP_NAME"
