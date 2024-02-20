@@ -35,5 +35,5 @@ jobs:
       - name: Print MY_ORG
         run: echo "MY_ORG is $MY_ORG"
       
-      - name: Print SHORT_SHA:
+      - name: Print SHORT_SHA
         run: echo "SHORT_SHA is $SHORT_SHA"
