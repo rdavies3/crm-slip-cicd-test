@@ -22,10 +22,18 @@ jobs:
   build: 
     runs-on: ubuntu-latest
     env:
-      MY_ORG: ${{ github.ref == 'refs/heads/main' && secrets.ORG_PROD || secrets.ORG_NP }}
       SHORT_SHA: =$(git rev-parse --short=7 ${{ github.sha }})
     steps:
+      - name: Set MY_ORG
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "MY_ORG=${{ secrets.ORG_PROD }}" >> $GITHUB_ENV
+          else
+            echo "MY_ORG=${{ secrets.ORG_NP }}" >> $GITHUB_ENV
+          fi
+
       - name: Print MY_ORG
-        run: | 
-          echo "MY_ORG is $MY_ORG"
-          echo "SHORT_SHA is $SHORT_SHA"
+        run: echo "MY_ORG is $MY_ORG"
+      
+      - name: Print SHORT_SHA:
+        run: echo "SHORT_SHA is $SHORT_SHA"
