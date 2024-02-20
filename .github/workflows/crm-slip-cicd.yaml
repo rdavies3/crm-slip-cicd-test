@@ -4,22 +4,60 @@ env:
   URL: https://elastic.snaplogic.com
   ORG-PROD: asu-prod
   ORG-NP: asu-np
-  PROJECT_SPACE: CICD
   APP_NAME: ${{ github.event.repository.name }}
 
-on:
-  push:
-    branches:
-      - dev
-      - qa
-  pull_request:
-    branches:
-      - main
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+  on:
+    push:
+      branches:
+        - dev
+        - qa
+    pull_request:
+      branches:
+        - main
 
 jobs:
-  build:
+  build: 
     runs-on: ubuntu-latest
+    env:
+      MY_ORG: ${{ github.head_ref == 'main' ? env.ORG_PROD : env.ORG_NP }}
+      SHORT_SHA: =$(git rev-parse --short=7 ${{ github.sha }})
     steps:
-      # Define your steps here
-      - name: Print PROJECT_PROMOTE
-        run: echo "app name is $APP_NAME"
+      # Clear CICD project space
+      - name: Clear CICD path
+        run: |
+          # DELETE project build folder
+          curl --location --request DELETE '$URL/api/1/rest/public/assetapi/project/$MY_ORG/CICD/$APP_NAME-$SHORT_SHA' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }' 
+        # Continue even if the CURL command fails
+        continue-on-error: true
+      - name: Create project build folder
+        run: |
+          # Execute the CURL API DELETE
+          curl --location --request POST '$URL/api/1/rest/public/assetapi/project/$MY_ORG/CICD/$APP_NAME-$SHORT_SHA' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
+            --data-raw '{
+                "permissions": [
+                    {
+                        "perms": [
+                            "R",
+                            "W",
+                            "X"
+                        ],
+                        "subject_type": "USER",
+                        "inherit": true,
+                        "subject": "roger.davies@asu.edu"
+                    }
+                ]
+            }'
+      - name: Checkout Project from Github
+        run: |
+          # DELETE project build folder
+          curl --location --request DELETE '$URL/api/1/rest/public/project/checkout/$MY_ORG/CICD/$APP_NAME-$SHORT_SHA' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }' \
+            -d '{"repo":"${{ github.repository }}","ref" : "${{ github.head_ref }}"}'
