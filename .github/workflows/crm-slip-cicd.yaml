@@ -57,11 +57,17 @@ jobs:
         run: |
           BRANCH=$(echo "${{ github.ref }}" | sed 's/^refs\///')
           echo "branch = $BRANCH"
-          curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          # Construct JSON payload
+          json_payload=$(cat <<EOF
+          {
+            "repo": "${{ github.repository }}",
+            "ref": "${branch}"
+          }
+          EOF
+          )
+          # Use curl with JSON payload
+          echo "$json_payload" | curl --location --request POST "${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}" \
             --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
-            --data-raw  '{
-                "repo":"${{ github.repository }}",
-                "ref" : "${BRANCH}"
-              }'
+            --header "Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}" \
+            --data @-
           
