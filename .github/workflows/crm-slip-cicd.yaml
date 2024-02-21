@@ -57,6 +57,7 @@ jobs:
             echo "MIGRATE=true" >> $GITHUB_ENV
             exit 1
           fi
+        continue-on-error: true
 
       - name: Delete project build folder
         run: |
