@@ -60,6 +60,6 @@ jobs:
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
                 "repo": "${{ github.repository }}",
-                "ref": "refs/${{ env.MY_REF }}"
+                "ref": "${{ env.MY_REF }}"
               }'
           
