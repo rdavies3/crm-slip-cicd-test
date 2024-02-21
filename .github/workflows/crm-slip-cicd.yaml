@@ -23,14 +23,12 @@ jobs:
       - name: Set MY_REF
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "MY_REF=refs/main" >> $GITHUB_ENV
+            echo "MY_REF=main" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == "refs/heads/qa" ]]; then
-            echo "MY_REF=refs/qa" >> $GITHUB_ENV
+            echo "MY_REF=qa" >> $GITHUB_ENV
           else
-            echo "MY_REF=refs/dev" >> $GITHUB_ENV
+            echo "MY_REF=dev" >> $GITHUB_ENV
           fi
-          echo "my_ref = $MY_REF"
-          echo "my_ref env" = ${{ env.MY_REF }}
 
       - name: Delete project build folder
         run: |
@@ -63,6 +61,8 @@ jobs:
 
       - name: Checkout Project from Github to project build folder
         run: |
+          echo "my_ref = $MY_REF"
+          echo "my_ref env" = ${{ env.MY_REF }}
           curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
