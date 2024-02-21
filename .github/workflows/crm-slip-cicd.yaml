@@ -8,16 +8,15 @@ on:
   pull_request:
     branches:
       - main
-
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
 env: 
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
   AUTH: 
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-  
 jobs:
   build: 
     runs-on: ubuntu-latest
