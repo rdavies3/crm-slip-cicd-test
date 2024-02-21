@@ -14,6 +14,7 @@ env:
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
   MY_REF: ''
+  BUILD_PATH: ''
   DEPLOY_PATH: ''
 
 jobs:
@@ -40,14 +41,14 @@ jobs:
             echo "MY_REF=dev" >> $GITHUB_ENV
             echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-dev/${{ env.APP_NAME }}" >> $GITHUB_ENV
           fi
+          echo "my_ref = $MY_REF"
+          echo "my_ref env = ${{ env.MY_REF }}"
 
       - name: Delete project build folder
         run: |
           curl --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' 
-        # Continue even if the CURL command fails
-        continue-on-error: true
 
       - name: Create project build folder
         run: |
@@ -85,7 +86,6 @@ jobs:
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
               }'
-        continue-on-error: true
 
       - name: Migrate project to target folder if create fails
         if: failure()
