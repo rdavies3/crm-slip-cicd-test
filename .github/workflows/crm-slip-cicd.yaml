@@ -13,8 +13,8 @@ env:
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
-  MY_REF: ''
   BUILD_PATH: ''
+  MY_REF: ''
   DEPLOY_PATH: ''
 
 jobs:
@@ -31,6 +31,7 @@ jobs:
           
       - name: Set deploy vars
         run: |
+          echo "BUILD_PATH=${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}-${{ env.SHA }}} >> $GITHUB_ENV
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "MY_REF=main" >> $GITHUB_ENV
             echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-prod/${{ env.APP_NAME }}" >> $GITHUB_ENV
@@ -41,8 +42,12 @@ jobs:
             echo "MY_REF=dev" >> $GITHUB_ENV
             echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-dev/${{ env.APP_NAME }}" >> $GITHUB_ENV
           fi
-          echo "my_ref = $MY_REF"
-          echo "my_ref env = ${{ env.MY_REF }}"
+
+      - name: Print dev/ build values
+        run: |
+          echo "my_ref      = ${{ env.MY_REF }}"
+          echo "build_path  = ${{ env.BUILD_PATH }}"
+          echo "deploy_path = ${{ env.DEPLOY_PATH }}"
 
       - name: Delete project build folder
         run: |
@@ -77,20 +82,19 @@ jobs:
                 "ref": "${{ env.MY_REF }}"
               }'
 
-      - name: Create new project from github
+      - name: Create new project from github or migrate if exists
         run: |
-          curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
+          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
-              }'
-
-      - name: Migrate project to target folder if create fails
-        if: failure()
-        run: |
-          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+              }')
+          echo response=$response
+          if [[ $response -gt 299 ]]; then
+            echo "HTTP request failed with status code $response"
+            curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
@@ -99,3 +103,4 @@ jobs:
                 "duplicate_check" : false,
                 "async" : false
             }'
+          fi
