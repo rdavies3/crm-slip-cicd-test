@@ -56,6 +56,7 @@ jobs:
         run: |
           # Extract branch name and remove 'refs/' prefix
           branch=$(echo "${{ github.ref }}" | sed 's/^refs\///')
+          echo "branch = ${branch}"
           curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
