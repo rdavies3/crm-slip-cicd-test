@@ -13,7 +13,7 @@ env:
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
-  MY_REF: "refs/${{ github.ref.name }}"
+  MY_REF: 'refs/$GITHUB_REF_NAME'
 
 jobs:
   build: 
