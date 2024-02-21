@@ -51,7 +51,7 @@ jobs:
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
               }')
-          echo response=$response
+          echo "response=$response"
           if [[ $response -gt 299 ]]; then
             echo "create-project request failed with status code $response"
             echo "MIGRATE=true" >> $GITHUB_ENV
@@ -69,7 +69,7 @@ jobs:
       - name: Create project build folder
         if: ${{ env.MIGRATE }}
         run: |
-          response=(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.BUILD_PATH }}' \
+          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
@@ -82,7 +82,7 @@ jobs:
                     }
                 ]
             }')
-          echo response=$response
+          echo "response=$response"
           if [[ $response -gt 299 ]]; then
             echo "Build path folder request failed with status code $response"
             exit 1
@@ -91,14 +91,14 @@ jobs:
       - name: Checkout Project from Github to project build folder
         if: ${{ env.MIGRATE }}
         run: |
-          response=(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.BUILD_PATH }}' \
+          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
               }')
-          echo response=$response
+          echo "response=$response"
           if [[ $response -gt 299 ]]; then
             echo "Project checkout request failed with status code $response"
             exit 1
@@ -107,7 +107,7 @@ jobs:
       - name: Migrate project from github or migrate if exists
         if: ${{ env.MIGRATE }}
         run: |
-          response=(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/migrate/${{ env.BUILD_PATH }}' \
+          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/migrate/${{ env.BUILD_PATH }}' \
           --header 'Content-Type: application/json' \
           --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
           --data-raw '{
@@ -116,7 +116,7 @@ jobs:
               "duplicate_check" : false,
               "async" : false
           }')
-          echo response=$response
+          echo "response=$response"
           if [[ $response -gt 299 ]]; then
             echo "Migrate project request failed with status code $response"
             exit 1
