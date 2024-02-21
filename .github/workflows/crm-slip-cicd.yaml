@@ -20,7 +20,14 @@ jobs:
   build: 
     runs-on: ubuntu-latest
     steps:
-
+      - uses: actions/checkout@v4
+      - uses: benjlevesque/short-sha@v3.0
+        id: short-sha
+      - run: echo $SHA
+        env:
+          SHA: ${{ steps.short-sha.outputs.sha }}
+      - run: echo ${{ env.SHA }}
+          
       - name: Set deploy vars
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
@@ -87,7 +94,18 @@ jobs:
             }'
         continue-on-error: true
 
-      - name: Migrate project to target folder
+      - name: Create new project from github
+        run: |
+          curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
+            --data-raw '{
+                "repo": "${{ github.repository }}",
+                "ref": "${{ env.MY_REF }}"
+              }'
+
+      - name: Migrate project to target folder if create fails
+        if: failure()
         run: |
           curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
