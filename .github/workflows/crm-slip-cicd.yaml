@@ -13,7 +13,6 @@ env:
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
-  MY_REF: ${{ if eq(github.ref, 'refs/heads/main') }}refs/main{{ elif eq(github.ref, 'refs/heads/qa') }}refs/qa{{ else }}refs/dev{{ endif }}
 
 jobs:
   build: 
@@ -27,9 +26,6 @@ jobs:
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' 
         # Continue even if the CURL command fails
         continue-on-error: true
-
-      - name: Print my_ref
-        run: echo "my_ref = ${{ env.MY_REF }}"
 
       - name: Create project build folder
         run: |
@@ -54,7 +50,15 @@ jobs:
 
       - name: Checkout Project from Github to project build folder
         run: |
-          echo "branch = ${{ github.event.ref }}"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "MY_REF=refs/main" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/qa" ]]; then
+            echo "MY_REF=refs/qa" >> $GITHUB_ENV
+          else
+            echo "MY_REF=refs/dev" >> $GITHUB_ENV
+          fi
+          echo "my_ref = $MY_REF"
+          echo "my_ref env" = ${{ env.MY_REF }}
           curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
