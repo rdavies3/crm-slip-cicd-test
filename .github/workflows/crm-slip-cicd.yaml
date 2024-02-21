@@ -15,6 +15,7 @@ env:
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
+  BRANCH: $(echo "${{ github.ref }}" | sed 's/^refs\///')
 
 jobs:
   build: 
@@ -56,12 +57,12 @@ jobs:
       - name: Checkout Project from Github to project build folder
         run: |
           BRANCH=$(echo "${{ github.ref }}" | sed 's/^refs\///')
-          echo "branch = $BRANCH"
+          echo "branch = ${{ env.BRANCH }}"
           curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
                 "repo":"${{ github.repository }}",
-                "ref" : "$BRANCH"
+                "ref" : "${{ env.BRANCH}}"
               }'
           
