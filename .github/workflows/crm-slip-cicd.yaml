@@ -16,6 +16,7 @@ env:
   BUILD_PATH: ''
   MY_REF: ''
   DEPLOY_PATH: ''
+  MIGRATE: false
 
 jobs:
   build: 
@@ -24,10 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: benjlevesque/short-sha@v3.0
         id: short-sha
-      - run: echo $SHA
         env:
           SHA: ${{ steps.short-sha.outputs.sha }}
-      - run: echo ${{ env.SHA }}
           
       - name: Set deploy vars
         run: |
@@ -43,21 +42,31 @@ jobs:
             echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-dev/${{ env.APP_NAME }}" >> $GITHUB_ENV
           fi
 
-      - name: Print dev/ build values
+      - name: Create new project from github
         run: |
-          echo "my_ref      = ${{ env.MY_REF }}"
-          echo "build_path  = ${{ env.BUILD_PATH }}"
-          echo "deploy_path = ${{ env.DEPLOY_PATH }}"
+          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
+            --data-raw '{
+                "repo": "${{ github.repository }}",
+                "ref": "${{ env.MY_REF }}"
+              }')
+          echo response=$response
+          if [[ $response -gt 299 ]]; then
+            echo "HTTP request failed with status code $response"
+            echo "MIGRATE=true" >> $GITHUB_ENV
+            exit 1
+          fi
 
       - name: Delete project build folder
         run: |
-          curl --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          curl --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' 
 
       - name: Create project build folder
         run: |
-          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.DEPLOY_PATH }}' \
+          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
@@ -72,9 +81,10 @@ jobs:
             }'
 
       - name: Checkout Project from Github to project build folder
+        if: ${{ env.MIGRATE }}
         run: |
-          echo "my_ref env = ${{ env.MY_REF }}" 
-          curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          echo "MIGRATE?: ${{ env.MIGRATE }}" 
+          curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
@@ -82,25 +92,16 @@ jobs:
                 "ref": "${{ env.MY_REF }}"
               }'
 
-      - name: Create new project from github or migrate if exists
+      - name: Migrate project from github or migrate if exists
+        if: ${{ env.MIGRATE }}
         run: |
-          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
-            --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
-            --data-raw '{
-                "repo": "${{ github.repository }}",
-                "ref": "${{ env.MY_REF }}"
-              }')
-          echo response=$response
-          if [[ $response -gt 299 ]]; then
-            echo "HTTP request failed with status code $response"
-            curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
-            --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
-            --data-raw '{
-                "dest_path" : "${{ env.DEPLOY_PATH }}",
-                "asset_types" : ["File", "Job", "Pipeline", "Policy"],
-                "duplicate_check" : false,
-                "async" : false
-            }'
-          fi
+          echo "MIGRATE?: ${{ env.MIGRATE }}" 
+          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.BUILD_PATH }}' \
+          --header 'Content-Type: application/json' \
+          --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
+          --data-raw '{
+              "dest_path" : "${{ env.DEPLOY_PATH }}",
+              "asset_types" : ["File", "Job", "Pipeline", "Policy"],
+              "duplicate_check" : false,
+              "async" : false
+          }'
