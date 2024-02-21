@@ -15,6 +15,7 @@ env:
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
+  BRANCH: ${{ github.event.ref }}
 
 jobs:
   build: 
@@ -29,8 +30,8 @@ jobs:
         # Continue even if the CURL command fails
         continue-on-error: true
 
-      - name: Print github refs
-        run: echo "github ref ${{ github.ref }}"
+      - name: Print Branch
+        run: echo "Branch = ${{ env.BRANCH }}"
 
       - name: Create project build folder
         run: |
@@ -55,13 +56,12 @@ jobs:
 
       - name: Checkout Project from Github to project build folder
         run: |
-          BRANCH=$(echo "${{ github.ref }}" | sed 's/^refs\///')
-          echo "branch = $BRANCH"
+          echo "branch = ${{ github.event.ref }}"
           curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
-                "repo":"${{ github.repository }}",
-                "ref" : "$BRANCH"
+                "repo": "${{ github.repository }}",
+                "ref": "${{ github.event.ref }}"
               }'
           
