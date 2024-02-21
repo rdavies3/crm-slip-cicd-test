@@ -55,14 +55,13 @@ jobs:
 
       - name: Checkout Project from Github to project build folder
         run: |
-          echo "branch = ${branch}"
+          BRANCH=$(echo "${{ github.ref }}" | sed 's/^refs\///')
+          echo "branch = $BRANCH"
           curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
                 "repo":"${{ github.repository }}",
-                "ref" : "${branch}"
+                "ref" : "$BRANCH"
               }'
-        env: 
-          # Extract branch name and remove 'refs/' prefix
-          branch: $(echo "${{ github.ref }}" | sed 's/^refs\///')
+          
