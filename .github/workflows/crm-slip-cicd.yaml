@@ -14,20 +14,24 @@ env:
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
   MY_REF: ''
+  DEPLOY_PATH: ''
 
 jobs:
   build: 
     runs-on: ubuntu-latest
     steps:
 
-      - name: Set MY_REF
+      - name: Set deploy vars
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "MY_REF=main" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-prod/${{ env.APP_NAME }}" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == "refs/heads/qa" ]]; then
             echo "MY_REF=qa" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-qa/${{ env.APP_NAME }}" >> $GITHUB_ENV
           else
             echo "MY_REF=dev" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-dev/${{ env.APP_NAME }}" >> $GITHUB_ENV
           fi
 
       - name: Delete project build folder
@@ -40,18 +44,13 @@ jobs:
 
       - name: Create project build folder
         run: |
-          # Execute the CURL API DELETE
-          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.DEPLOY_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
                 "permissions": [
                     {
-                        "perms": [
-                            "R",
-                            "W",
-                            "X"
-                        ],
+                        "perms": ["R","W","X"],
                         "subject_type": "USER",
                         "inherit": true,
                         "subject": "roger.davies@asu.edu"
@@ -61,8 +60,7 @@ jobs:
 
       - name: Checkout Project from Github to project build folder
         run: |
-          echo "my_ref = $MY_REF"
-          echo "my_ref env" = ${{ env.MY_REF }}
+          echo "my_ref env = ${{ env.MY_REF }}" 
           curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
@@ -70,4 +68,33 @@ jobs:
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
               }'
-          
+
+      - name: Create project target folder
+        run: |
+          echo "deploy_path env = ${{ env.DEPLOY_PATH }}" 
+          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.DEPLOY_PATH }}' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
+            --data-raw '{
+                "permissions": [
+                    {
+                        "perms": ["R","W","X"],
+                        "subject_type": "USER",
+                        "inherit": true,
+                        "subject": "roger.davies@asu.edu"
+                    }
+                ]
+            }'
+        continue-on-error: true
+
+      - name: Migrate project to target folder
+        run: |
+          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
+            --data-raw '{
+                "dest_path" : "${{ env.DEPLOY_PATH }}",
+                "asset_types" : ["File", "Job", "Pipeline", "Policy"],
+                "duplicate_check" : false,
+                "async" : false
+            }'
