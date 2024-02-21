@@ -13,7 +13,7 @@ env:
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
-  BRANCH: $(echo "${{ github.ref }}" | awk -F'/' '{print $NF}')
+  MY_REF: "refs/${{ github.ref.name }}"
 
 jobs:
   build: 
@@ -28,8 +28,8 @@ jobs:
         # Continue even if the CURL command fails
         continue-on-error: true
 
-      - name: Print Branch
-        run: echo "Branch = ${{ env.BRANCH }}"
+      - name: Print my_ref
+        run: echo "my_ref = ${{ env.MY_REF }}"
 
       - name: Create project build folder
         run: |
@@ -60,6 +60,6 @@ jobs:
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
                 "repo": "${{ github.repository }}",
-                "ref": "refs/${{ env.BRANCH }}"
+                "ref": "refs/${{ env.MY_REF }}"
               }'
           
