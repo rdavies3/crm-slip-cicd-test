@@ -50,7 +50,8 @@ jobs:
             --data-raw '{
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
-              }'
+              }'; then
+            echo "HTTP request succeeded"
           else 
             echo "create-project request failed"
             echo "MIGRATE=true" >> $GITHUB_ENV
