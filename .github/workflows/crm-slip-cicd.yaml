@@ -44,18 +44,17 @@ jobs:
       
       - name: Create new project from github
         run: |
-          if response=$(curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
+          if curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
-              }'); then
+              }'; then
             echo "create-project completed successfully"
           else 
             echo "MIGRATE=true" >> $GITHUB_ENV
             echo "create-project failed"
-            echo "$response"
             exit 1
           fi
         continue-on-error: true
