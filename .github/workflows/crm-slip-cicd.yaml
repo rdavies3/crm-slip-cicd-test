@@ -42,7 +42,7 @@ jobs:
               --header "Content-Type: application/json" \
               --header "Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}" \
               --data-raw '{"repo": "${{ github.repository }}", "ref": "${{ env.MY_REF }}"}' ; then
-            echo "create-project request succeeded"
+            echo ""
           else 
             echo "create-project request failed"
             echo "MIGRATE=true" >> $GITHUB_ENV
@@ -53,9 +53,15 @@ jobs:
       - name: Delete project build folder
         if: ${{ env.MIGRATE }}
         run: |
-          curl -s --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
+          if curl -s --fail --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'; then
+            echo ""
+          else 
+            echo "\nDelete project build folder request failed"
+            exit 1
+          fi
+        continue-on-error: true
 
       - name: Create project build folder
         if: ${{ env.MIGRATE }}
@@ -73,9 +79,9 @@ jobs:
                     }
                 ]
             }'; then
-            echo "create project build folder request succeeded"
+            echo ""
           else 
-            echo "create project build folder request failed"
+            echo "Create project build folder request failed"
             exit 1
           fi
 
@@ -89,9 +95,9 @@ jobs:
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
               }'; then
-            echo "checkout project request succeeded"
+            echo ""
           else 
-            echo "checkout project request request failed"
+            echo "\nCheckout Project from Github to project build folder request failed"
             exit 1
           fi
 
@@ -107,15 +113,20 @@ jobs:
               "duplicate_check" : false,
               "async" : false
           }'; then
-            echo "migrate project request succeeded"
+            echo ""
           else 
-            echo "migrate project request request failed"
+            echo "\nMigrate project request failed"
             exit 1
           fi
 
       - name: Clean-up project build folder
         if: ${{ env.MIGRATE }}
         run: |
-          curl -s --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
+          if curl -s --fail --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'; then
+            echo ""
+          else 
+            echo "\nClean-up project build folder request failed"
+            exit 1
+          fi
