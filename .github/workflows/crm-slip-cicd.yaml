@@ -51,10 +51,10 @@ jobs:
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
               }'; then
-            echo "create-project completed successfully"
+            echo "create-project request succeeded"
           else 
+            echo "create-project request failed"
             echo "MIGRATE=true" >> $GITHUB_ENV
-            echo "create-project failed"
             exit 1
           fi
         continue-on-error: true
