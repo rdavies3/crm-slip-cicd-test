@@ -44,7 +44,7 @@ jobs:
       
       - name: Create new project from github
         run: |
-          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
+          response=$(curl -s -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
@@ -69,7 +69,7 @@ jobs:
       - name: Create project build folder
         if: ${{ env.MIGRATE }}
         run: |
-          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.BUILD_PATH }}' \
+          response=$(curl -s -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
@@ -91,7 +91,7 @@ jobs:
       - name: Checkout Project from Github to project build folder
         if: ${{ env.MIGRATE }}
         run: |
-          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.BUILD_PATH }}' \
+          response=$(curl -s -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
@@ -107,7 +107,7 @@ jobs:
       - name: Migrate project from github or migrate if exists
         if: ${{ env.MIGRATE }}
         run: |
-          response=$(curl -o /dev/null -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/migrate/${{ env.BUILD_PATH }}' \
+          response=$(curl -s -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/migrate/${{ env.BUILD_PATH }}' \
           --header 'Content-Type: application/json' \
           --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
           --data-raw '{
