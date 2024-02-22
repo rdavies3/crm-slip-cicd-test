@@ -50,7 +50,7 @@ jobs:
             --data-raw '{
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
-              }'); then
+              }' 2>&1); then
             echo "create-project request succeeded"
           else 
             echo "create-project request failed with $response"
