@@ -53,8 +53,7 @@ jobs:
               }'); then
             echo "create-project request succeeded"
           else 
-            echo "create-project request failed"
-            echo "$response"
+            echo "create-project request failed with $response"
             echo "MIGRATE=true" >> $GITHUB_ENV
             exit 1
           fi
