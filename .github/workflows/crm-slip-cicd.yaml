@@ -44,16 +44,15 @@ jobs:
       
       - name: Create new project from github
         run: |
-          response=$(curl -o /dev/null -s -w "%{http_code}" --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
+          if curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
                 "repo": "${{ github.repository }}",
                 "ref": "${{ env.MY_REF }}"
               }')
-          echo "response=$response"
-          if [[ $response -gt 299 ]]; then
-            echo "create-project request failed with status code $response"
+          else 
+            echo "create-project request failed"
             echo "MIGRATE=true" >> $GITHUB_ENV
             exit 1
           fi
@@ -69,7 +68,7 @@ jobs:
       - name: Create project build folder
         if: ${{ env.MIGRATE }}
         run: |
-          curl -s --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/migrate/${{ env.BUILD_PATH }}' \
+          curl -s --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
