@@ -62,7 +62,7 @@ jobs:
       - name: Delete project build folder
         if: ${{ env.MIGRATE }}
         run: |
-          if curl -s --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
+          curl -s --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'
 
