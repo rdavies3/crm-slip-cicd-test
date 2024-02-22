@@ -44,7 +44,7 @@ jobs:
       
       - name: Create new project from github
         run: |
-          if resonse=$(curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
+          if response=$(curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/project/create-project/${{ env.DEPLOY_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
