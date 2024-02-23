@@ -44,7 +44,7 @@ jobs:
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'; then
             echo ""
           else 
-            echo "\nDelete project build folder request failed"
+            echo "Delete project build folder request failed"
             exit 1
           fi
         continue-on-error: true
@@ -83,7 +83,7 @@ jobs:
               }'; then
             echo ""
           else 
-            echo "\nCheckout Project from Github to project build folder request failed"
+            echo "Checkout Project from Github to project build folder request failed"
             exit 1
           fi
 
@@ -101,7 +101,7 @@ jobs:
           }'; then
             echo ""
           else 
-            echo "\nMigrate project request failed"
+            echo "Migrate project request failed"
             exit 1
           fi
 
@@ -113,6 +113,6 @@ jobs:
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'; then
             echo ""
           else 
-            echo "\nClean-up project build folder request failed"
+            echo "Clean-up project build folder request failed"
             exit 1
           fi
