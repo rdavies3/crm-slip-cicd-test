@@ -90,13 +90,13 @@ jobs:
       - name: Create project deploy folder
         if: ${{ env.MIGRATE }}
         run: |
-          curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.DEPLOY_PATH }}' \
+          curl -s --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.DEPLOY_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
                 "permissions": [
                     {
-                        "perms": ["R","W", "X"],
+                        "perms": ["R","W","X"],
                         "subject_type": "USER",
                         "inherit": true,
                         "subject": "roger.davies@asu.edu"
