@@ -27,7 +27,7 @@ jobs:
           echo "BUILD_PATH=${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}-${{ github.ref_name }}" >> $GITHUB_ENV
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "MY_REF=main" >> $GITHUB_ENV
-            echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-prod/${{ env.APP_NAME }}" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-prd/${{ env.APP_NAME }}" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == "refs/heads/qa" ]]; then
             echo "MY_REF=qa" >> $GITHUB_ENV
             echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-qa/${{ env.APP_NAME }}" >> $GITHUB_ENV
@@ -44,7 +44,7 @@ jobs:
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'; then
             echo ""
           else 
-            echo "Delete project build folder request failed"
+            echo $'\nDelete project build folder request failed'
             exit 1
           fi
         continue-on-error: true
