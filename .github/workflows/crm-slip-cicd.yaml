@@ -5,8 +5,6 @@ on:
     branches:
       - dev
       - qa
-  pull_request:
-    branches:
       - main
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -15,51 +13,106 @@ env:
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
   MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
+  BUILD_PATH: ''
+  MY_REF: ''
+  DEPLOY_PATH: ''
+  MIGRATE: false
 
 jobs:
   build: 
     runs-on: ubuntu-latest
-    steps:
+    steps:          
+      - name: Set deploy vars
+        run: |
+          echo "BUILD_PATH=${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}-${{ github.ref_name }}" >> $GITHUB_ENV
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "MY_REF=main" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-prd/${{ env.APP_NAME }}" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/qa" ]]; then
+            echo "MY_REF=qa" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-qa/${{ env.APP_NAME }}" >> $GITHUB_ENV
+          else
+            echo "MY_REF=dev" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=${{ env.MY_ORG }}/int-dev/${{ env.APP_NAME }}" >> $GITHUB_ENV
+          fi
 
       - name: Delete project build folder
+        if: ${{ env.MIGRATE }}
         run: |
-          curl --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          if curl -s --fail --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' 
-        # Continue even if the CURL command fails
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'; then
+            echo ""
+          else 
+            echo $'\nDelete project build folder request failed'
+            exit 1
+          fi
         continue-on-error: true
 
-      - name: Print github refs
-        run: echo "github ref ${{ github.ref }}"
       - name: Create project build folder
+        if: ${{ env.MIGRATE }}
         run: |
-          # Execute the CURL API DELETE
-          curl --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          if curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
                 "permissions": [
                     {
-                        "perms": [
-                            "R",
-                            "W",
-                            "X"
-                        ],
+                        "perms": ["R","W","X"],
                         "subject_type": "USER",
                         "inherit": true,
                         "subject": "roger.davies@asu.edu"
                     }
                 ]
-            }'
+            }'; then
+            echo ""
+          else 
+            echo "Create project build folder request failed"
+            exit 1
+          fi
 
       - name: Checkout Project from Github to project build folder
+        if: ${{ env.MIGRATE }}
         run: |
-          # Extract branch name and remove 'refs/' prefix
-          branch=$(echo "${{ github.ref }}" | sed 's/^refs\///')
-          curl --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.MY_ORG }}/CICD/${{ env.APP_NAME }}' \
+          if curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/project/checkout/${{ env.BUILD_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw  '{
-                "repo":"${{ github.repository }}",
-                "ref" : "${branch}"
-              }'
+                "repo": "${{ github.repository }}",
+                "ref": "${{ env.MY_REF }}"
+              }'; then
+            echo ""
+          else 
+            echo "Checkout Project from Github to project build folder request failed"
+            exit 1
+          fi
+
+      - name: Migrate project
+        if: ${{ env.MIGRATE }}
+        run: |
+          if curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/project/migrate/${{ env.BUILD_PATH }}' \
+          --header 'Content-Type: application/json' \
+          --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
+          --data-raw '{
+              "dest_path" : "${{ env.DEPLOY_PATH }}",
+              "asset_types" : ["File", "Job", "Pipeline", "Policy"],
+              "duplicate_check" : false,
+              "async" : false
+          }'; then
+            echo ""
+          else 
+            echo "Migrate project request failed"
+            exit 1
+          fi
+
+      - name: Clean-up project build folder
+        if: ${{ env.MIGRATE }}
+        run: |
+          if curl -s --fail --location --request DELETE '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.BUILD_PATH }}' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'; then
+            echo ""
+          else 
+            echo "Clean-up project build folder request failed"
+            exit 1
+          fi
