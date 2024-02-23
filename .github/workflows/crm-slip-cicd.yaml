@@ -90,7 +90,7 @@ jobs:
       - name: Create project deploy folder
         if: ${{ env.MIGRATE }}
         run: |
-          curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.DEPLOY_PATH }}' \
+          curl -s --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.DEPLOY_PATH }}' \
             --header 'Content-Type: application/json' \
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
             --data-raw '{
@@ -107,7 +107,7 @@ jobs:
       - name: Migrate project
         if: ${{ env.MIGRATE }}
         run: |
-          if curl -s --location --request POST '${{ env.URL }}/api/1/rest/public/project/migrate/${{ env.BUILD_PATH }}' \
+          if curl -s --fail --location --request POST '${{ env.URL }}/api/1/rest/public/project/migrate/${{ env.BUILD_PATH }}' \
           --header 'Content-Type: application/json' \
           --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
           --data-raw '{
