@@ -58,7 +58,7 @@ jobs:
             --data-raw '{
                 "permissions": [
                     {
-                        "perms": ["R","W","X"],
+                        "perms": ["R","W"],
                         "subject_type": "USER",
                         "inherit": true,
                         "subject": "roger.davies@asu.edu"
