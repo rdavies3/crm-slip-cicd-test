@@ -12,7 +12,7 @@ on:
 env: 
   URL: https://elastic.snaplogic.com
   APP_NAME: ${{ github.event.repository.name }}
-  MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prod'|| 'asu-np' }}
+  MY_ORG: ${{ github.ref == 'refs/heads/main' && 'asu-prd'|| 'asu-np' }}
   BUILD_PATH: ''
   MY_REF: ''
   DEPLOY_PATH: ''
