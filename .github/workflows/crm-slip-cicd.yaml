@@ -44,7 +44,7 @@ jobs:
             --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}'; then
             echo ""
           else 
-            echo $'\nDelete project build folder request failed'
+            echo $'Delete project build folder request failed'
             exit 1
           fi
         continue-on-error: true
@@ -58,7 +58,7 @@ jobs:
             --data-raw '{
                 "permissions": [
                     {
-                        "perms": ["R","W","X"],
+                        "perms": ["R","W"],
                         "subject_type": "USER",
                         "inherit": true,
                         "subject": "roger.davies@asu.edu"
@@ -86,6 +86,23 @@ jobs:
             echo "Checkout Project from Github to project build folder request failed"
             exit 1
           fi
+
+      - name: Create project deploy folder
+        if: ${{ env.MIGRATE }}
+        run: |
+          curl -s --location --request POST '${{ env.URL }}/api/1/rest/public/assetapi/project/${{ env.DEPLOY_PATH }}' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic ${{ secrets.SNAPLOGIC_HTTP_BASIC_AUTH }}' \
+            --data-raw '{
+                "permissions": [
+                    {
+                        "perms": ["R","W","X"],
+                        "subject_type": "USER",
+                        "inherit": true,
+                        "subject": "roger.davies@asu.edu"
+                    }
+                ]
+            }'
 
       - name: Migrate project
         if: ${{ env.MIGRATE }}
